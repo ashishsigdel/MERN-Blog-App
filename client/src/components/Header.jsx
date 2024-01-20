@@ -21,7 +21,7 @@ export default function Header() {
           type="text"
           placeholder="Search..."
           rightIcon={AiOutlineSearch}
-          className="hidden lg:inline"
+          className="hidden lg:inline "
         />
       </form>
       <Button className="w-12 h-10 lg:hidden" color="gray" pill>
