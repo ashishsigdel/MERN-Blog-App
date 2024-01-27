@@ -22,6 +22,7 @@ import {
 } from "../redux/user/userSlice";
 import { useDispatch } from "react-redux";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { HiArrowSmRight } from "react-icons/hi";
 
 export default function DashProfile() {
   const { currentUser, error, loading } = useSelector((state) => state.user);
@@ -32,7 +33,8 @@ export default function DashProfile() {
   const [imageFileUploading, setImageFileUploading] = useState(false);
   const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
   const [updateUserError, setUpdateUserError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal1, setShowModal1] = useState(false);
+  const [showModal2, setShowModal2] = useState(false);
   const [formData, setFormData] = useState({});
   const filePickerRef = useRef();
   const dispatch = useDispatch();
@@ -121,7 +123,7 @@ export default function DashProfile() {
     }
   };
   const handleDeleteUser = async () => {
-    setShowModal(false);
+    setShowModal1(false);
     try {
       dispatch(deleteUserStart());
       const res = await fetch(`/api/user/delete/${currentUser._id}`, {
@@ -247,10 +249,10 @@ export default function DashProfile() {
         )}
       </form>
       <div className="text-red-500 flex justify-between mt-5">
-        <span onClick={() => setShowModal(true)} className="cursor-pointer">
+        <span onClick={() => setShowModal1(true)} className="cursor-pointer">
           Delete Account
         </span>
-        <span onClick={handleSignout} className="cursor-pointer">
+        <span onClick={() => setShowModal2(true)} className="cursor-pointer">
           Sign Out
         </span>
       </div>
@@ -270,8 +272,8 @@ export default function DashProfile() {
         </Alert>
       )}
       <Modal
-        show={showModal}
-        onClose={() => setShowModal(false)}
+        show={showModal1}
+        onClose={() => setShowModal1(false)}
         popup
         size="md"
       >
@@ -281,13 +283,40 @@ export default function DashProfile() {
             <HiOutlineExclamationCircle className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
             <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
               Are you sure you want to delete your account?
+              <span className="text-red-500">
+                This process is irreversible.
+              </span>
             </h3>
             <div className="flex justify-center gap-4">
               <Button color="failure" onClick={handleDeleteUser}>
                 Yes, I'm sure
               </Button>
-              <Button color="gray" onClick={() => setShowModal(false)}>
+              <Button color="gray" onClick={() => setShowModal1(false)}>
                 No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showModal2}
+        onClose={() => setShowModal2(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiArrowSmRight className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              Conform to signout
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleSignout}>
+                Yes, signout
+              </Button>
+              <Button color="gray" onClick={() => setShowModal2(false)}>
+                No, stay
               </Button>
             </div>
           </div>

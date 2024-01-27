@@ -1,16 +1,26 @@
-import { Avatar, Button, Dropdown, Navbar, TextInput } from "flowbite-react";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  Modal,
+  Navbar,
+  TextInput,
+} from "flowbite-react";
 import { Link, useLocation } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleTheme } from "../redux/theme/themeSlice";
 import { signoutSuccess } from "../redux/user/userSlice";
+import { useState } from "react";
+import { HiArrowSmRight } from "react-icons/hi";
 
 export default function Header() {
   const path = useLocation().pathname;
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
   const { theme } = useSelector((state) => state.theme);
+  const [showmodal, setshowmodal] = useState(false);
   const handleSignout = async () => {
     try {
       const res = await fetch("/api/user/signout", {
@@ -21,6 +31,7 @@ export default function Header() {
         console.log(data.message);
       } else {
         dispatch(signoutSuccess());
+        setshowmodal(false);
       }
     } catch (error) {
       console.log(error.message);
@@ -75,7 +86,9 @@ export default function Header() {
               <Dropdown.Item>Profile</Dropdown.Item>
             </Link>
             <Dropdown.Divider />
-            <Dropdown.Item onClick={handleSignout}>Sign out</Dropdown.Item>
+            <Dropdown.Item onClick={() => setshowmodal(true)}>
+              Sign out
+            </Dropdown.Item>
           </Dropdown>
         ) : (
           <Link to="/sign-in">
@@ -98,6 +111,30 @@ export default function Header() {
           <Link to="/projects">Projects</Link>
         </Navbar.Link>
       </Navbar.Collapse>
+      <Modal
+        show={showmodal}
+        onClose={() => setshowmodal(false)}
+        popup
+        size="md"
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiArrowSmRight className="h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto" />
+            <h3 className="mb-5 text-lg text-gray-500 dark:text-gray-400">
+              Conform to signout
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleSignout}>
+                Yes, signout
+              </Button>
+              <Button color="gray" onClick={() => setshowmodal(false)}>
+                No, stay
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </Navbar>
   );
 }
