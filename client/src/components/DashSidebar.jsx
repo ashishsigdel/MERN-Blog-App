@@ -1,11 +1,18 @@
-import { Sidebar } from "flowbite-react";
-import { HiUser, HiArrowSmRight, HiDocumentText } from "react-icons/hi";
+import { Button, Sidebar } from "flowbite-react";
+import {
+  HiUser,
+  HiArrowSmRight,
+  HiDocumentText,
+  HiArrowSmDown,
+} from "react-icons/hi";
+import { FaCheck, FaTimes } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { signoutSuccess } from "../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function DashSidebar() {
+  const [showmodal, setshowmodal] = useState(false);
   const { currentUser } = useSelector((state) => state.user);
   const location = useLocation();
   const dispatch = useDispatch();
@@ -34,40 +41,57 @@ export default function DashSidebar() {
     }
   };
   return (
-    <Sidebar className="w-full md:w-56">
-      <Sidebar.Items>
-        <Sidebar.ItemGroup className="flex flex-col gap-1">
-          <Link to="/dashboard?tab=profile">
-            <Sidebar.Item
-              active={tab === "profile"}
-              icon={HiUser}
-              label={currentUser.isAdmin ? "Admin" : "User"}
-              labelColor="dark"
-              as="div"
-            >
-              Profile
-            </Sidebar.Item>
-          </Link>
-          {currentUser.isAdmin && (
-            <Link to="/dashboard?tab=posts">
+    <>
+      <Sidebar className="w-full md:w-56">
+        <Sidebar.Items>
+          <Sidebar.ItemGroup className="flex flex-col gap-1">
+            <Link to="/dashboard?tab=profile">
               <Sidebar.Item
-                active={tab === "posts"}
-                icon={HiDocumentText}
+                active={tab === "profile"}
+                icon={HiUser}
+                label={currentUser.isAdmin ? "Admin" : "User"}
+                labelColor="dark"
                 as="div"
               >
-                Posts
+                Profile
               </Sidebar.Item>
             </Link>
-          )}
-          <Sidebar.Item
-            icon={HiArrowSmRight}
-            className="cursor-pointer"
-            onClick={handleSignout}
-          >
-            Sign Out
-          </Sidebar.Item>
-        </Sidebar.ItemGroup>
-      </Sidebar.Items>
-    </Sidebar>
+            {currentUser.isAdmin && (
+              <Link to="/dashboard?tab=posts">
+                <Sidebar.Item
+                  active={tab === "posts"}
+                  icon={HiDocumentText}
+                  as="div"
+                >
+                  Posts
+                </Sidebar.Item>
+              </Link>
+            )}
+            <Sidebar.Item
+              icon={HiArrowSmRight}
+              className="cursor-pointer"
+              onClick={() => setshowmodal(true)}
+            >
+              Sign Out
+            </Sidebar.Item>
+            {showmodal && (
+              <Sidebar.Item
+                className="cursor-pointer"
+                onClick={() => setshowmodal(false)}
+              >
+                <div className="flex justify-center gap-4">
+                  <Button color="failure" onClick={handleSignout}>
+                    <FaCheck />
+                  </Button>
+                  <Button color="gray" onClick={() => setshowmodal(false)}>
+                    <FaTimes />
+                  </Button>
+                </div>
+              </Sidebar.Item>
+            )}
+          </Sidebar.ItemGroup>
+        </Sidebar.Items>
+      </Sidebar>
+    </>
   );
 }

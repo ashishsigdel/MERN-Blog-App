@@ -1,4 +1,4 @@
-import { Button, Alert, FileInput, Select, TextInput } from "flowbite-react";
+import { Alert, Button, FileInput, Select, TextInput } from "flowbite-react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import {
@@ -8,25 +8,55 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-export default function CreatePost() {
+export default function UpdatePost() {
   const [file, setFile] = useState(null);
-  const navigate = useNavigate();
-  const [imageFileUploadProgress, setImageFileUploadProgress] = useState(null);
-  const [imageFileUploadError, setImageFileUploadError] = useState(null);
+  const [imageUploadProgress, setImageUploadProgress] = useState(null);
+  const [imageUploadError, setImageUploadError] = useState(null);
   const [formData, setFormData] = useState({});
+  const [formImage, setFormImage] = useState("");
+  const [formId, setFormId] = useState("");
   const [publishError, setPublishError] = useState(null);
-  const handleUploadImage = async () => {
+  const { postId } = useParams();
+
+  const navigate = useNavigate();
+  const { currentUser } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await fetch(`/api/post/getposts?postId=${postId}`);
+        const data = await res.json();
+        if (!res.ok) {
+          console.log(data.message);
+          setPublishError(data.message);
+          return;
+        }
+        if (res.ok) {
+          setPublishError(null);
+          setFormData(data.posts[0]);
+          setFormImage(data.posts[0].image);
+          setFormId(data.posts[0]._id);
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    fetchPost();
+  }, [postId]);
+
+  const handleUpdloadImage = async () => {
     try {
       if (!file) {
-        setImageFileUploadError("Please select an image.");
+        setImageUploadError("Please select an image");
         return;
       }
-      setImageFileUploadError(null);
+      setImageUploadError(null);
       const storage = getStorage(app);
       const fileName = new Date().getTime() + "-" + file.name;
       const storageRef = ref(storage, fileName);
@@ -36,51 +66,56 @@ export default function CreatePost() {
         (snapshot) => {
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-          setImageFileUploadProgress(progress.toFixed(0));
+          setImageUploadProgress(progress.toFixed(0));
         },
         (error) => {
-          setImageFileUploadError("Image upload failed.");
-          setImageFileUploadProgress(null);
+          setImageUploadError("Image upload failed");
+          setImageUploadProgress(null);
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageFileUploadProgress(null);
-            setImageFileUploadError(null);
+            setImageUploadProgress(null);
+            setImageUploadError(null);
             setFormData({ ...formData, image: downloadURL });
           });
         }
       );
     } catch (error) {
+      setImageUploadError("Image upload failed");
+      setImageUploadProgress(null);
       console.log(error);
     }
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/post/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `/api/post/updatepost/${formId}/${currentUser._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
       const data = await res.json();
       if (!res.ok) {
         setPublishError(data.message);
         return;
       }
+
       if (res.ok) {
         setPublishError(null);
         navigate(`/post/${data.slug}`);
       }
     } catch (error) {
-      setPublishError("Somethings went wrong!");
+      setPublishError("Something went wrong");
     }
   };
   return (
     <div className="p-3 max-w-3xl mx-auto min-h-screen">
-      <h1 className="text-center text-3xl my-7 font-semibold">Create a post</h1>
+      <h1 className="text-center text-3xl my-7 font-semibold">Update post</h1>
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4 sm:flex-row justify-between">
           <TextInput
@@ -90,16 +125,15 @@ export default function CreatePost() {
             id="title"
             className="flex-1"
             onChange={(e) =>
-              setFormData({
-                ...formData,
-                title: e.target.value,
-              })
+              setFormData({ ...formData, title: e.target.value })
             }
+            value={formData.title}
           />
           <Select
             onChange={(e) =>
               setFormData({ ...formData, category: e.target.value })
             }
+            value={formData.category}
           >
             <option value="uncategorized">Select a category</option>
             <option value="javascript">JavaScript</option>
@@ -119,14 +153,14 @@ export default function CreatePost() {
             gradientDuoTone="purpleToBlue"
             size="sm"
             outline
-            onClick={handleUploadImage}
-            disabled={imageFileUploadProgress}
+            onClick={handleUpdloadImage}
+            disabled={imageUploadProgress}
           >
-            {imageFileUploadProgress ? (
+            {imageUploadProgress ? (
               <div className="w-16 h-16">
                 <CircularProgressbar
-                  value={imageFileUploadProgress}
-                  text={`${imageFileUploadProgress || 0}%`}
+                  value={imageUploadProgress}
+                  text={`${imageUploadProgress || 0}%`}
                 />
               </div>
             ) : (
@@ -134,18 +168,17 @@ export default function CreatePost() {
             )}
           </Button>
         </div>
-        {imageFileUploadError && (
-          <Alert color="failure">{imageFileUploadError}</Alert>
-        )}
-        {formData.image && (
+        {imageUploadError && <Alert color="failure">{imageUploadError}</Alert>}
+        {formImage && (
           <img
-            src={formData.image}
+            src={formImage}
             alt="upload"
             className="w-full h-72 object-cover"
           />
         )}
         <ReactQuill
           theme="snow"
+          value={formData.content}
           placeholder="Write something..."
           className="h-72 mb-12"
           required
@@ -154,7 +187,7 @@ export default function CreatePost() {
           }}
         />
         <Button type="submit" gradientDuoTone="purpleToPink">
-          Publish
+          Update post
         </Button>
         {publishError && (
           <Alert className="mt-5" color="failure">
