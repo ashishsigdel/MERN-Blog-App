@@ -3,7 +3,7 @@ import {
   HiUser,
   HiArrowSmRight,
   HiDocumentText,
-  HiArrowSmDown,
+  HiOutlineUserGroup,
 } from "react-icons/hi";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -64,6 +64,17 @@ export default function DashSidebar() {
                   as="div"
                 >
                   Posts
+                </Sidebar.Item>
+              </Link>
+            )}
+            {currentUser.isAdmin && (
+              <Link to="/dashboard?tab=users">
+                <Sidebar.Item
+                  active={tab === "users"}
+                  icon={HiOutlineUserGroup}
+                  as="div"
+                >
+                  Users
                 </Sidebar.Item>
               </Link>
             )}
