@@ -41,13 +41,11 @@ In the second terminal
 MOGO =
 JWT_SECRET_KEY =
 
-```
 # --- Terminal ---
 
 $ npm install (to install backend-side dependencies)
 $ npm run dev (to start the backend)
 ```
-
 ##  Key Features
 
 - User registration and login
