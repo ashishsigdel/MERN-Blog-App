@@ -42,7 +42,8 @@ export const singIn = async (req, res, next) => {
 
   try {
     const validUser = await User.findOne({ email });
-    if (!validUser) return next(404, "User not found!");
+    if (!validUser)
+      return next(errorHandler(404, "User not found! Sign up first."));
 
     const validPassword = bcryptjs.compareSync(password, validUser.password);
     if (!validPassword)
